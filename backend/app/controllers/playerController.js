@@ -16,8 +16,8 @@ const Player = mongoose.model('Player')
 let getPlayerList = (req, res) => {
     try {
         let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
-        if (req.query.pg > 1) {
-            skip = (limit) * (req.query.pg - 1)
+        if (req.query.pg > 0) {
+            skip = (limit) * (req.query.pg)
         }
         Player.find({}, {}, {skip: skip, limit: limit, sort: {createdOn: 1}}, function (err, data) {
             if (err) {
@@ -54,8 +54,8 @@ let getPlayerList = (req, res) => {
 let filterPlayerList = (req, res) => {
     try {
         let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
-        if (req.query.pg > 1) {
-            skip = (limit) * (req.query.pg - 1)
+        if (req.query.pg > 0) {
+            skip = (limit) * (req.query.pg)
         }
         let query = {};
         // query[req.body.field] = { $regex: '.*' + req.body.value + '.*' };
