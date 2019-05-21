@@ -16,6 +16,7 @@ import {PlayerService} from './services/player.service';
 
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import {HttpClientModule} from '@angular/common/http';
+import {ToastrModule} from 'ngx-toastr';
 
 @NgModule({
   imports: [
@@ -27,7 +28,8 @@ import {HttpClientModule} from '@angular/common/http';
     FooterModule,
     SidebarModule,
     AppRoutingModule,
-    HttpClientModule
+    HttpClientModule,
+      ToastrModule.forRoot()
   ],
   declarations: [
     AppComponent,

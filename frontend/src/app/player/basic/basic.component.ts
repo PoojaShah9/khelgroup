@@ -1,6 +1,7 @@
 import {Component, OnInit, ViewChild} from '@angular/core';
 import {PlayerService} from '../../services/player.service';
 import {DatatableComponent} from '@swimlane/ngx-datatable';
+import {ToastrService} from 'ngx-toastr';
 
 declare interface TableData {
     headerRow: string[];
@@ -27,6 +28,7 @@ export class BasicComponent implements OnInit {
     totalSize;
     pageSize;
     currentPage = 0;
+    filterData: any = {};
     limitOptions = [
         {
             key: '5',
@@ -42,45 +44,30 @@ export class BasicComponent implements OnInit {
         }
     ];
 
-    constructor(private playerService: PlayerService) {
+    constructor(private playerService: PlayerService,
+                private toastr: ToastrService) {
     }
 
     ngOnInit() {
         this.pageSize = 5;
-        this.getdata(1, this.pageSize);
+        this.currentPage = 0;
+        this.getdata(this.currentPage, this.pageSize);
     }
 
     SearchFilter() {
-        const data = {
+        this.currentPage = 0;
+        this.filterData = {
             field: this.selectedField,
             value: this.searchValue
-        }
-        this.playerService.setFilter(this.currentPage, this.pageSize, data)
-            .subscribe((res) => {
-                console.log(res);
-                this.rows = res.data.results;
-                this.totalSize = res.data.totalRecords;
-                // this.pageSize = res.currentRecords;
-            })
-    }
-
-    getdata(pageNumber, pageSize) {
-        this.playerService.getPlayer(pageNumber, pageSize)
-            .subscribe((data) => {
-                    this.rows = data.data.results;
-                    this.totalSize = data.data.totalRecords;
-                    console.log('this.rows', this.rows);
-                    console.log('this.totalSize', this.totalSize);
-                },
-                error => {
-                    console.log('error1', error);
-                });
+        };
+        this.getfilterData();
     }
 
     onChangeField(event) {
         console.log(event.target.value);
         if (event.target.value === 'reset') {
             this.searchValue = '';
+            this.filterData = {};
             this.getdata(0, this.pageSize);
         } else {
             this.selectedField = event.target.value;
@@ -88,19 +75,56 @@ export class BasicComponent implements OnInit {
     }
 
     onPageSizeChanged(event) {
+        this.currentPage = 0;
         this.pageSize = event;
-        this.getdata(this.currentPage, this.pageSize);
-        console.log(event);
+        if (this.filterData && this.filterData.field) {
+            this.getfilterData();
+        } else {
+            this.getdata(this.currentPage, this.pageSize);
+        }
     }
 
     pageCallback(e) {
         console.log('e', e, this.selectedField);
         if (this.selectedField === undefined) {
-            this.getdata(e.offset + 1, e.pageSize);
+            this.getdata(e.offset, e.pageSize);
         } else {
-            this.currentPage = e.offset + 1;
-            this.SearchFilter();
+            this.currentPage = e.offset;
+            this.getfilterData();
         }
+    }
 
+    getdata(pageNumber, pageSize) {
+        this.playerService.getPlayer(pageNumber, pageSize)
+            .subscribe((data) => {
+                    if (data && data.status === 200) {
+                        this.rows = data.data.results;
+                        this.totalSize = data.data.totalRecords;
+                    } else {
+                        this.toastr.error(data.message);
+                        this.rows = [];
+                        this.totalSize = 0;
+                    }
+                },
+                error => {
+                    console.log('error1', error);
+                    this.toastr.error(error);
+                });
+    }
+
+    getfilterData() {
+        this.playerService.setFilter(this.currentPage, this.pageSize, this.filterData)
+            .subscribe((res) => {
+                if (res && res.status === 200) {
+                    this.rows = res.data.results;
+                    this.totalSize = res.data.totalRecords;
+                } else {
+                    this.toastr.error(res.message);
+                    this.rows = [];
+                    this.totalSize = 0;
+                }
+            }, error => {
+                this.toastr.error(error);
+            })
     }
 }
