@@ -18,4 +18,12 @@ module.exports.setRouter = (app) => {
     // filter player list
     app.post(`${baseUrl}/filterplayerlist`, playerController.filterPlayerList);
 
+    // player sign in through social account
+    app.post(`${baseUrl}/signIn/social/account`, playerController.playerSignIn);
+
+    // player sign in as guest
+    app.post(`${baseUrl}/signIn/as/guest`, playerController.guestPlayerSignIn);
+
+    // Update Player
+    app.put(`${baseUrl}/update/profile`, playerController.updatePlayer);
 }

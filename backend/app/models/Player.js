@@ -45,6 +45,26 @@ let playerSchema = new Schema({
         type: String,
         default: ''
     },
+    socialAccount: {
+        type: String,
+        default: ''
+    },
+    socialPicture: {
+        type: String,
+        default: ''
+    },
+    socialId: {
+        type: String,
+        default: ''
+    },
+    socialName: {
+        type: String,
+        default: ''
+    },
+    emailId: {
+        type: String,
+        default: ''
+    },
     createdOn: {
         type: Date,
         default: ''
