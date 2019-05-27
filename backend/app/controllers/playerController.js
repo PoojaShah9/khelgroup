@@ -70,7 +70,7 @@ let playerSignIn = (req, res) => {
     let findPlayer = () => {
         console.log("findUser");
         return new Promise((resolve, reject) => {
-            Player.findOne({'socialId': req.body.socialAccount, "socialAccount": req.body.socialAccount})
+            Player.findOne({'socialId': req.body.socialId, "socialAccount": req.body.socialAccount})
                 .exec((err, playerDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve user data", "userController => findUser()", 5);
@@ -88,7 +88,12 @@ let playerSignIn = (req, res) => {
     let createPlayer = () => {
         console.log("createUser");
         return new Promise((resolve, reject) => {
-            let body = req.body;
+            let body = {};
+            body['socialPicture'] = req.body.socialPicture;
+            body['socialId'] = req.body.socialId;
+            body['socialName'] = req.body.socialName;
+            body['socialAccount'] = (req.body.socialAccount).toLowerCase();
+            body['emailId'] = req.body.emailId;
             body['playerId'] = shortid.generate();
             body['createdOn'] = new Date();
             Player.create(body, function (err, playerDetails) {
@@ -375,7 +380,11 @@ let updatePlayer = (req, res) => {
     let updatePlayer = (playerDetails) => {
         console.log("updatePlayer");
         return new Promise((resolve, reject) => {
-            Player.findByIdAndUpdate(playerDetails._id, req.body, {new: true}, function (err, player) {
+            let body = {};
+            body['mobileNumber'] = req.body.mobileNumber;
+            body['profilePhoto'] = req.body.profilePhoto;
+            body['profileName'] = req.body.profileName;
+            Player.findByIdAndUpdate(playerDetails._id, body, {new: true}, function (err, player) {
                 if (err) {
                     let apiResponse = response.generate(true, "Error in update player", 400, null);
                     reject(apiResponse);
