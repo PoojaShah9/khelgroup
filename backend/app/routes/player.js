@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const playerController = require("./../../app/controllers/playerController");
-const appConfig = require("./../../config/appConfig")
+const appConfig = require("./../../config/appConfig");
+const middleware = require('../middlewares/auth');
 
 module.exports.setRouter = (app) => {
 
@@ -25,5 +26,17 @@ module.exports.setRouter = (app) => {
     app.post(`${baseUrl}/signIn/as/guest`, playerController.guestPlayerSignIn);
 
     // Update Player
-    app.put(`${baseUrl}/update/profile`, playerController.updatePlayer);
+    app.put(`${baseUrl}/update/profile`, middleware.isAuthorize, playerController.updatePlayer);
+
+    // Player join game
+    app.put(`${baseUrl}/join/game`, middleware.isAuthorize, playerController.joinGame);
+
+    // Player won game
+    app.put(`${baseUrl}/won/game`, middleware.isAuthorize, playerController.wonGame);
+
+    // get wallet info
+    app.get(`${baseUrl}/get/wallet/info`, middleware.isAuthorize, playerController.getWallet);
+
+    // get top 10 players from history
+    app.get(`${baseUrl}/get/top/ten/player/history`, middleware.isAuthorize, playerController.getTopTen);
 }

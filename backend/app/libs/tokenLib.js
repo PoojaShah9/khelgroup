@@ -3,7 +3,7 @@
 const jwt = require('jsonwebtoken');
 const shortid = require('shortid');
 // we should have a string which should not be predicatble by anyone and which is used to decode the token
-const secretKey = 'someRandomKeyThatNoBodyCanGuess';
+const secretKey = '8Zz5tw0Ionm3XPZZfN0NOml3z9FMfmpgXwovR9fp6ryDIoGRM8EPHAB6iHsc0fb';
 
 // function for generating a JWT TOKEN
 let generateToken = (data,cb) => {
