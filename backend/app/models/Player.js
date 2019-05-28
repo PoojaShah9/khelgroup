@@ -68,8 +68,8 @@ let playerSchema = new Schema({
     createdOn: {
         type: Date,
         default: ''
-    }
-})
+    },
+}, { versionKey: false  })
 
 
 mongoose.model('Player', playerSchema);

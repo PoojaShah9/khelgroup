@@ -18,7 +18,7 @@ let PlayerHistoryCollectionSchema = new Schema({
         type: String,
         default: ''
     },
-})
+}, { versionKey: false  })
 
 
 mongoose.model('PlayerHistory', PlayerHistoryCollectionSchema);

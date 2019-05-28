@@ -37,9 +37,7 @@ let userSchema = new Schema({
     type:Date,
     default:""
   }
-
-
-})
+}, { versionKey: false  })
 
 
 mongoose.model('User', userSchema);

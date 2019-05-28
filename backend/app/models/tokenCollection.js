@@ -25,7 +25,7 @@ let tokenCollectionSchema = new Schema({
         type: String,
         default: ''
     }
-})
+}, { versionKey: false  })
 
 
 mongoose.model('tokenCollection', tokenCollectionSchema);

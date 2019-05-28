@@ -248,9 +248,12 @@ let playerSignIn = (req, res) => {
                             let apiResponse = response.generate(true, "Failed to save token", 500, null);
                             reject(apiResponse);
                         } else {
+                            let finalObject = tokenDetails.toObject()
+                            delete finalObject._id;
+                            delete finalObject.__v;
                             let responseBody = {
                                 authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
+                                playerDetails: finalObject.playerDetails
                             };
                             resolve(responseBody);
                         }
@@ -339,8 +342,11 @@ let guestPlayerSignIn = (req, res) => {
                     let apiResponse = response.generate(true, "Failed to generate token", 500, null);
                     reject(apiResponse);
                 } else {
+                    let finalObject = playerDetails.toObject()
+                    delete finalObject._id;
+                    delete finalObject.__v;
                     tokenDetails.playerId = playerDetails.playerId;
-                    tokenDetails.playerDetails = playerDetails;
+                    tokenDetails.playerDetails = finalObject;
                     resolve(tokenDetails);
                 }
             });
@@ -509,8 +515,11 @@ let updatePlayer = (req, res) => {
                     let apiResponse = response.generate(true, "Failed to generate token", 500, null);
                     reject(apiResponse);
                 } else {
+                    let finalObject = player.toObject()
+                    delete finalObject._id;
+                    delete finalObject.__v;
                     tokenDetails.playerId = player.playerId;
-                    tokenDetails.playerDetails = player;
+                    tokenDetails.playerDetails = finalObject;
                     resolve(tokenDetails);
                 }
             });
@@ -558,6 +567,8 @@ let updatePlayer = (req, res) => {
                             let apiResponse = response.generate(true, "Failed to save token", 500, null);
                             reject(apiResponse);
                         } else {
+                            delete tokenDetails._id;
+                            delete tokenDetails.__v;
                             let responseBody = {
                                 authToken: newTokenDetails.authToken,
                                 playerDetails: tokenDetails.playerDetails
@@ -749,10 +760,10 @@ let joinGame = (req, res) => {
                             reject(apiResponse);
                         } else {
                             logger.info("wallet found", "PlayerController => updatePlayerHistory()", 10);
-                            let responseBody = {
-                                walletInfo: WalletDetails
-                            };
-                            resolve(responseBody);
+                            let finalObject = WalletDetails.toObject()
+                            delete finalObject._id;
+                            delete finalObject.__v;
+                            resolve(finalObject);
                         }
                     })
                 }
@@ -819,6 +830,8 @@ let joinGame = (req, res) => {
                             let apiResponse = response.generate(true, "Failed to save token", 500, null);
                             reject(apiResponse);
                         } else {
+                            delete tokenDetails._id;
+                            delete tokenDetails.__v;
                             let responseBody = {
                                 authToken: newTokenDetails.authToken,
                                 playerDetails: tokenDetails.playerDetails
@@ -989,10 +1002,10 @@ let wonGame = (req, res) => {
                     reject(apiResponse);
                 } else {
                     logger.info("find and update wallet", "PlayerController => updateWallet()", 10);
-                    let response = {
-                        walletInformation:newwalletDetails
-                    }
-                    resolve(response);
+                    let finalObject = newwalletDetails.toObject()
+                    delete finalObject._id;
+                    delete finalObject.__v;
+                    resolve(finalObject);
 
                 }
             })
@@ -1049,10 +1062,10 @@ let getWallet = (req, res) => {
                         reject(apiResponse);
                     } else {
                         logger.info("wallet found", "PlayerController => findWallet()", 10);
-                        let response = {
-                            walletInfo: walletDetails
-                        }
-                        resolve(response);
+                        let finalObject = walletDetails.toObject()
+                        delete finalObject._id;
+                        delete finalObject.__v;
+                        resolve(finalObject);
                     }
                 });
         });
@@ -1098,10 +1111,14 @@ let getTopTen = (req, res) => {
                         reject(apiResponse);
                     } else {
                         logger.info("Top ten player found", "PlayerController => findTopTen()", 10);
-                        let response = {
-                            topTenPlayer: topTenPlayer
-                        }
-                        resolve(response);
+                        let final = [];
+                        topTenPlayer.forEach((item)=>{
+                            let finalObject = item.toObject()
+                            delete finalObject.__v;
+                            delete finalObject._id;
+                            final.push(finalObject);
+                        })
+                        resolve(final);
                     }
                 });
         });
@@ -1111,7 +1128,7 @@ let getTopTen = (req, res) => {
     validatingInputs()
         .then(findTopTen)
         .then((resolve) => {
-            let apiResponse = response.generate(false, "Wallet information!!", 200, resolve);
+            let apiResponse = response.generate(false, "Top 10 player information!!", 200, resolve);
             res.send(apiResponse);
         })
         .catch((err) => {

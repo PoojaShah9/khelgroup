@@ -24,7 +24,7 @@ let WalletCollectionSchema = new Schema({
         type: String,
         default: ''
     },
-})
+}, { versionKey: false  })
 
 
 mongoose.model('Wallet', WalletCollectionSchema);
