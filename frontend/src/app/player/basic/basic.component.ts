@@ -19,6 +19,8 @@ export class BasicComponent implements OnInit {
         {id: 'playerId', name: 'Player Id'},
         {id: 'mobileNumber', name: 'Mobile Number'},
         {id: 'profileName', name: 'Profile Name'},
+        {id: 'currencyType', name: 'Currency Type'},
+        {id: 'currencyAmount', name: 'Currency Amount'},
         {id: 'deviceId', name: 'Device Id'},
         {id: 'status', name: 'Status'}
     ];
