@@ -21,8 +21,8 @@
                 </div>
               </div>
               <input type="text" name="searchValue" [(ngModel)]="searchValue" style="width: 200px"
-                     class="form-control">
-              <button class="btn btn-primary" style="margin-left: 5px" type="submit"
+                     class="form-control" (keyup)="disableButton()">
+              <button class="btn btn-primary" style="margin-left: 5px" type="submit" [disabled]="btnDisable"
                       (click)="SearchFilter()">Filter
               </button>
             </div>
@@ -67,12 +67,12 @@
                   <strong>{{value}}</strong>
                 </ng-template>
               </ngx-datatable-column>
-              <ngx-datatable-column name="Currency Type">
+              <ngx-datatable-column name="Chips">
                 <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
                   <strong>{{value}}</strong>
                 </ng-template>
               </ngx-datatable-column>
-              <ngx-datatable-column name="Currency Amount">
+              <ngx-datatable-column name="Diamond">
                 <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
                   <strong>{{value}}</strong>
                 </ng-template>

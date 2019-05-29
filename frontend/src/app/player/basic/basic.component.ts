@@ -19,8 +19,8 @@ export class BasicComponent implements OnInit {
         {id: 'playerId', name: 'Player Id'},
         {id: 'mobileNumber', name: 'Mobile Number'},
         {id: 'profileName', name: 'Profile Name'},
-        {id: 'currencyType', name: 'Currency Type'},
-        {id: 'currencyAmount', name: 'Currency Amount'},
+        {id: 'chips', name: 'Chips'},
+        {id: 'diamond', name: 'Diamond'},
         {id: 'deviceId', name: 'Device Id'},
         {id: 'status', name: 'Status'}
     ];
@@ -45,6 +45,7 @@ export class BasicComponent implements OnInit {
             value: 20
         }
     ];
+    btnDisable = true;
 
     constructor(private playerService: PlayerService,
                 private toastr: ToastrService) {
@@ -128,5 +129,13 @@ export class BasicComponent implements OnInit {
             }, error => {
                 this.toastr.error(error);
             })
+    }
+
+    disableButton() {
+        if (this.searchValue === null || this.searchValue === undefined || this.searchValue === '') {
+            this.btnDisable = true;
+        } else {
+            this.btnDisable = false;
+        }
     }
 }
