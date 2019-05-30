@@ -39,4 +39,7 @@ module.exports.setRouter = (app) => {
 
     // get top 10 players from history
     app.get(`${baseUrl}/get/top/ten/player/history`, middleware.isAuthorize, playerController.getTopTen);
+
+    // Convert Diamond into chips
+    app.post(`${baseUrl}/convert/dtc`, middleware.isAuthorize, playerController.convertDiamondToChips);
 }

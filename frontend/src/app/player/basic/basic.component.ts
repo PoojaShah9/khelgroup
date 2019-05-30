@@ -2,6 +2,7 @@ import {Component, OnInit, ViewChild} from '@angular/core';
 import {PlayerService} from '../../services/player.service';
 import {DatatableComponent} from '@swimlane/ngx-datatable';
 import {ToastrService} from 'ngx-toastr';
+import {selector} from 'rxjs-compat/operator/publish';
 
 declare interface TableData {
     headerRow: string[];
@@ -71,6 +72,7 @@ export class BasicComponent implements OnInit {
         if (event.target.value === 'reset') {
             this.searchValue = '';
             this.filterData = {};
+            this.selectedField = '';
             this.getdata(0, this.pageSize);
         } else {
             this.selectedField = event.target.value;
@@ -89,7 +91,7 @@ export class BasicComponent implements OnInit {
 
     pageCallback(e) {
         console.log('e', e, this.selectedField);
-        if (this.selectedField === undefined) {
+        if (this.selectedField === undefined || this.selectedField === '') {
             this.getdata(e.offset, e.pageSize);
         } else {
             this.currentPage = e.offset;

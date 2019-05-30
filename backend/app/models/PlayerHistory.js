@@ -10,13 +10,14 @@ let PlayerHistoryCollectionSchema = new Schema({
         type: Number,
         default: 0
     },
-    currencyWon: {
+    chipsWon: {
         type: Number,
         default: 0
     },
     playerId: {
         type: String,
-        default: ''
+        default: '',
+        index: true,
     },
 }, { versionKey: false  })
 

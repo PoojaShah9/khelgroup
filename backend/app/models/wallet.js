@@ -12,17 +12,22 @@ let WalletCollectionSchema = new Schema({
         index: true,
         unique: true
     },
-    currencyType: {
-        type: String,
-        default: ''
+    // currencyType: {
+    //     type: String,
+    //     default: ''
+    // },
+    chips: {
+        type: Number,
+        default: 0
     },
-    currencyAmount: {
+    diamond: {
         type: Number,
         default: 0
     },
     playerId: {
         type: String,
-        default: ''
+        default: '',
+        index: true
     },
 }, { versionKey: false  })
 
