@@ -6,25 +6,32 @@
           <div class="header">
             <h2 class="title">Player List</h2>
             <!--<p class="category">Here is a subtitle for this table</p>-->
-            <div class="form-inline pull-right">
-              <div class="form-group">
-                <!--                                <label class="control-label" for="company">Select</label>-->
-                <div class="col-md-3">
-                  <select id="filter" class="form-control" (change)="onChangeField($event)">
-                    <option> -- Select --</option>
-                    <option *ngFor="let field of filterField" [value]="field.id">
-                      {{field.name}}
-                    </option>
-                    <option value="reset"> -- RESET --</option>
+            <div class="form-inline col-xs-12 col-md-12 col-sm-12">
+              <div class="col-md-6"></div>
+              <div class="col-md-6">
 
-                  </select>
+                <div class="col-md-4">
+                    <select id="filter" class="form-control" (change)="onChangeField($event)">
+                      <option value="select"> -- Select --</option>
+                      <option *ngFor="let field of filterField" [value]="field.id">
+                        {{field.name}}
+                      </option>
+                      <option value="reset"> -- RESET --</option>
+
+                    </select>
                 </div>
+                <div class="col-md-4">
+                  <input type="text" name="searchValue" [(ngModel)]="searchValue"
+                         class="form-control" (keyup)="disableButton()">
+                </div>
+                <div class="col-md-4">
+                  <button class="btn btn-primary pull-right" type="submit" [disabled]="btnDisable"
+                          (click)="SearchFilter()">Filter
+                  </button>
+                </div>
+
               </div>
-              <input type="text" name="searchValue" [(ngModel)]="searchValue" style="width: 200px"
-                     class="form-control" (keyup)="disableButton()">
-              <button class="btn btn-primary" style="margin-left: 5px" type="submit" [disabled]="btnDisable"
-                      (click)="SearchFilter()">Filter
-              </button>
+
             </div>
           </div>
           <div class="content table-responsive table-full-width" style="margin-top: 40px">

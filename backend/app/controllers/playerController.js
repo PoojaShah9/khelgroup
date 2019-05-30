@@ -1302,6 +1302,7 @@ let getPlayerList = (req, res) => {
                     let apiResponse = response.generate(true, "No wallet found", 500, null);
                     reject(apiResponse);
                 } else {
+
                     let final = [];
                     playersDetails.forEach((x) => {
                         x = x.toObject();
@@ -1467,6 +1468,7 @@ let filterPlayerList = (req, res) => {
                 } else {
                     let final = [];
                     playersDetails.forEach((x) => {
+                        x = x.toObject();
                         x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
                         x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
                         final.push(x);

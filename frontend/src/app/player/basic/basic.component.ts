@@ -72,7 +72,9 @@ export class BasicComponent implements OnInit {
         if (event.target.value === 'reset') {
             this.searchValue = '';
             this.filterData = {};
-            this.selectedField = '';
+            this.selectedField = null;
+            this.currentPage = 0;
+            this.btnDisable = true;
             this.getdata(0, this.pageSize);
         } else {
             this.selectedField = event.target.value;
@@ -91,7 +93,7 @@ export class BasicComponent implements OnInit {
 
     pageCallback(e) {
         console.log('e', e, this.selectedField);
-        if (this.selectedField === undefined || this.selectedField === '') {
+        if (this.selectedField === undefined || this.selectedField ==  'reset' || this.selectedField === '' || this.searchValue === "" || this.searchValue === undefined) {
             this.getdata(e.offset, e.pageSize);
         } else {
             this.currentPage = e.offset;
@@ -134,7 +136,7 @@ export class BasicComponent implements OnInit {
     }
 
     disableButton() {
-        if (this.searchValue === null || this.searchValue === undefined || this.searchValue === '') {
+        if (this.searchValue === null || this.searchValue === undefined) {
             this.btnDisable = true;
         } else {
             this.btnDisable = false;
