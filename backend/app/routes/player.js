@@ -42,4 +42,7 @@ module.exports.setRouter = (app) => {
 
     // Convert Diamond into chips
     app.post(`${baseUrl}/convert/dtc`, middleware.isAuthorize, playerController.convertDiamondToChips);
+
+    // transaction api
+    app.post(`${baseUrl}/transaction`, middleware.isAuthorize, playerController.transaction);
 }

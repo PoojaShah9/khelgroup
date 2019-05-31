@@ -14,6 +14,7 @@ const Player = mongoose.model('Player');
 const tokenCol = mongoose.model('tokenCollection');
 const Wallet = mongoose.model('Wallet');
 const PH = mongoose.model('PlayerHistory');
+const Transaction = mongoose.model('transaction');
 
 // create Player function
 let createPlayer = (req, res) => {
@@ -43,6 +44,367 @@ let createPlayer = (req, res) => {
         res.status(500).send(e);
     }
 } // end of create Player function
+
+// get Player List function
+let getPlayerList = (req, res) => {
+
+    let getSizeLimit = () => {
+        console.log("getSizeLimit");
+        return new Promise((resolve, reject) => {
+            let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
+            if (req.query.pg > 0) {
+                skip = (limit) * (req.query.pg)
+            }
+            let data = {}
+            data['skip'] = skip;
+            data['limit'] = limit;
+            resolve(data)
+        });
+    } // end of getSizeLimit function
+
+    let findPlayers = (data) => {
+        console.log("findPlayers");
+        return new Promise((resolve, reject) => {
+            Player.find({}, {}, {
+                skip: data.skip,
+                limit: data.limit,
+                sort: {createdOn: 1}
+            }, function (err, playersDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve players", "playerController => findPlayers()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(playersDetails)) {
+                    logger.error("No players found", "playerController => findPlayers()", 5);
+                    let apiResponse = response.generate(true, "No players found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    /*let final = [];
+                    playersDetails.forEach((item) => {
+                        let finalObject = item.toObject();
+                        delete finalObject._id;
+                        delete finalObject.__v;
+                        final.push(finalObject)
+                    })*/
+                    resolve(playersDetails);
+                }
+            });
+        });
+    } // end of findPlayers Functions
+
+    let findWallet = (playersDetails) => {
+        console.log("findWallet");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            let id = [];
+            playersDetails.filter((x) => {
+                id.push(x.playerId);
+            })
+            query = {playerId: {$in: id}}
+            Wallet.find(query, {}, {}, function (err, walletDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(walletDetails)) {
+                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
+                    let apiResponse = response.generate(true, "No wallet found", 500, null);
+                    reject(apiResponse);
+                } else {
+
+                    let final = [];
+                    playersDetails.forEach((x) => {
+                        x = x.toObject();
+                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                        final.push(x);
+                    })
+                    let res = {
+                        results: final
+                    }
+                    resolve(res);
+                }
+            });
+        });
+    } // end of find wallet function
+
+    let totalPlayers = (final) => {
+        console.log("totalPlayers");
+        return new Promise((resolve, reject) => {
+            Player.find().count(function (err, cnt) {
+                if (err) {
+                    logger.error("Failed to retrieve payers", "playerController => totalPlayers()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve payers", 500, null);
+                    reject(apiResponse);
+                } else {
+                    final['totalRecords'] = cnt;
+                    resolve(final);
+                }
+            });
+        });
+    } // end of total Players function
+
+    getSizeLimit()
+        .then(findPlayers)
+        .then(findWallet)
+        .then(totalPlayers)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, "Get Player List Successfully!!", 200, resolve);
+            res.send(apiResponse);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+            res.status(err.status);
+        });
+} // end of get Player List function
+
+// filter player list function
+let filterPlayerList = (req, res) => {
+
+    let validatingInputs = () => {
+        console.log("validatingInputs");
+        return new Promise((resolve, reject) => {
+            if (req.body.field && req.body.value) {
+                resolve(req);
+            } else {
+                let apiResponse = response.generate(true, "field or value missing", 400, null);
+                reject(apiResponse);
+            }
+        });
+    }; // end of validatingInputs
+
+    let getSizeLimit = () => {
+        console.log("getSizeLimit");
+        return new Promise((resolve, reject) => {
+            let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
+            if (req.query.pg > 0) {
+                skip = (limit) * (req.query.pg)
+            }
+            let data = {}
+            data['skip'] = skip;
+            data['limit'] = limit;
+            resolve(data)
+        });
+    } // end of getSizeLimit function
+
+    let getTotalWalletCount = (final) => {
+        console.log("getTotalWalletCount");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            query[req.body.field] = req.body.value;
+            Wallet.find(query, {}, {}).count(function (err, cnt) {
+                if (err) {
+                    logger.error("Failed to retrieve wallet", "playerController => getTotalWalletCount()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve wallet", 500, null);
+                    reject(apiResponse);
+                } else {
+                    final['totalRecords'] = cnt
+                    resolve(final)
+                }
+            })
+        });
+    } // end of getTotalWalletCount function
+
+    let getTotalPlayerCount = (final) => {
+        console.log("getTotalPlayerCount");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            query[req.body.field] = {$regex: new RegExp("^" + req.body.value.toLowerCase(), "i")};
+            Player.find(query, {}, {}).count(function (err, cnt) {
+                if (err) {
+                    logger.error("Failed to retrieve Player", "playerController => getTotalPlayerCount()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve Player", 500, null);
+                    reject(apiResponse);
+                } else {
+                    final['totalRecords'] = cnt
+                    resolve(final)
+                }
+            })
+        });
+    } // end of getTotalPlayerCount function
+
+    let getPlayers = (data) => {
+        console.log("getPlayers");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            query[req.body.field] = {$regex: new RegExp("^" + req.body.value.toLowerCase(), "i")};
+            Player.find(query, {}, {
+                skip: data.skip,
+                limit: data.limit,
+                sort: {createdOn: 1}
+            }, function (err, playersDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve players", "playerController => getPlayers()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(playersDetails)) {
+                    logger.error("No players found", "playerController => getPlayers()", 5);
+                    let apiResponse = response.generate(true, "No players found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    /*let final = [];
+                    playersDetails.forEach((item) => {
+                        let finalObject = item.toObject();
+                        delete finalObject._id;
+                        delete finalObject.__v;
+                        final.push(finalObject)
+                    })*/
+                    resolve(playersDetails);
+                }
+            });
+        });
+    } // end of getPlayers function
+
+    let getWalletWithId = (playersDetails) => {
+        console.log("getWalletWithId");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            let id = [];
+            playersDetails.filter((x) => {
+                id.push(x.playerId);
+            })
+            query = {playerId: {$in: id}}
+            Wallet.find(query, {}, {}, function (err, walletDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(walletDetails)) {
+                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
+                    let apiResponse = response.generate(true, "No wallet found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    let final = [];
+                    playersDetails.forEach((x) => {
+                        x = x.toObject();
+                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                        final.push(x);
+                    })
+                    let res = {
+                        results: final
+                    }
+                    resolve(res);
+                }
+            });
+        })
+    } // end of getWalletWithId function
+
+    let getWallet = (data) => {
+        console.log("getWallet");
+        return new Promise((resolve, reject) => {
+            let query = {}
+            query[req.body.field] = req.body.value
+            Wallet.find(query, {}, {
+                skip: data.skip,
+                limit: data.limit,
+                sort: {createdOn: 1}
+            }, function (err, walletDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve Wallet", "playerController => getWallet()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(walletDetails)) {
+                    logger.error("No Wallet found", "playerController => getWallet()", 5);
+                    let apiResponse = response.generate(true, "No Wallet found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    /*  let final = [];
+                      walletDetails.forEach((item) => {
+                          let finalObject = item.toObject();
+                          delete finalObject._id;
+                          delete finalObject.__v;
+                          final.push(finalObject)
+                      })*/
+                    resolve(walletDetails);
+                }
+            });
+        });
+    } // end of getWallet function
+
+    let getPlayerWithId = (walletDetails) => {
+        console.log("getPlayerWithId");
+        return new Promise((resolve, reject) => {
+            let query = {};
+            let id = [];
+            walletDetails.filter((x) => {
+                id.push(x.playerId);
+            })
+            query = {playerId: {$in: id}}
+            Player.find(query, {}, {}, function (err, playersDetails) {
+                if (err) {
+                    logger.error("Failed to retrieve player", "playerController => getPlayerWithId()", 5);
+                    let apiResponse = response.generate(true, "Failed to retrieve player", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(playersDetails)) {
+                    logger.error("No player found", "playerController => getPlayerWithId()", 5);
+                    let apiResponse = response.generate(true, "No player found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    let final = [];
+                    playersDetails.forEach((x) => {
+                        x = x.toObject();
+                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                        final.push(x);
+                    })
+                    let res = {
+                        results: final
+                    }
+                    resolve(res);
+                }
+            });
+        });
+    } // end of getPlayerWithId function
+
+    let filter = (data) => {
+        console.log("findPlayers");
+        return new Promise((resolve, reject) => {
+            let field = ['playerId', 'mobileNumber', 'profileName', 'deviceId', 'status'];
+            let query = {};
+            if (field.indexOf(req.body.field) !== -1) {
+
+                getPlayers(data)
+                    .then(getWalletWithId)
+                    .then(getTotalPlayerCount)
+                    .then((final) => {
+                        resolve(final);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        res.send(err);
+                        res.status(err.status);
+                    });
+            } else {
+                getWallet(data)
+                    .then(getPlayerWithId)
+                    .then(getTotalWalletCount)
+                    .then((final) => {
+                        resolve(final);
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                        res.send(err);
+                        res.status(err.status);
+                    });
+            }
+        });
+    } // end of filter Functions
+
+    validatingInputs()
+        .then(getSizeLimit)
+        .then(filter)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, "Get Filter Player List Successfully!!", 200, resolve);
+            res.send(apiResponse);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+            res.status(err.status);
+        });
+} // end of filter Player List function
 
 // player sign in
 let playerSignIn = (req, res) => {
@@ -129,6 +491,7 @@ let playerSignIn = (req, res) => {
                     body['diamond'] = 10;
                     body['chips'] = 1000;
                     body['playerId'] = playerDetails.playerId;
+                    body['createdOn'] = new Date();
                     Wallet.create(body, function (err, walletDetails) {
                         if (err) {
                             logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
@@ -313,6 +676,7 @@ let guestPlayerSignIn = (req, res) => {
             body['diamond'] = 5;
             body['chips'] = 500;
             body['playerId'] = playerDetails.playerId;
+            body['createdOn'] = new Date();
             Wallet.create(body, function (err, walletDetails) {
                 if (err) {
                     logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
@@ -730,6 +1094,7 @@ let joinGame = (req, res) => {
                     body['gamesPlayed'] = 0;
                     body['currencyWon'] = 0;
                     body['playerId'] = walletDetails.playerId;
+                    body['createdOn'] = new Date();
                     PH.create(body, function (err, newPHdetails) {
                         if (err) {
                             let apiResponse = response.generate(true, "Error in find player history", 400, null);
@@ -1236,358 +1601,47 @@ let convertDiamondToChips = (req, res) => {
         });
 } // end of convert Diamond To Chips in function
 
-// get Player List function
-let getPlayerList = (req, res) => {
-
-    let getSizeLimit = () => {
-        console.log("getSizeLimit");
-        return new Promise((resolve, reject) => {
-            let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
-            if (req.query.pg > 0) {
-                skip = (limit) * (req.query.pg)
-            }
-            let data = {}
-            data['skip'] = skip;
-            data['limit'] = limit;
-            resolve(data)
-        });
-    } // end of getSizeLimit function
-
-    let findPlayers = (data) => {
-        console.log("findPlayers");
-        return new Promise((resolve, reject) => {
-            Player.find({}, {}, {
-                skip: data.skip,
-                limit: data.limit,
-                sort: {createdOn: 1}
-            }, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve players", "playerController => findPlayers()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No players found", "playerController => findPlayers()", 5);
-                    let apiResponse = response.generate(true, "No players found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*let final = [];
-                    playersDetails.forEach((item) => {
-                        let finalObject = item.toObject();
-                        delete finalObject._id;
-                        delete finalObject.__v;
-                        final.push(finalObject)
-                    })*/
-                    resolve(playersDetails);
-                }
-            });
-        });
-    } // end of findPlayers Functions
-
-    let findWallet = (playersDetails) => {
-        console.log("findWallet");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            let id = [];
-            playersDetails.filter((x) => {
-                id.push(x.playerId);
-            })
-            query = {playerId: {$in: id}}
-            Wallet.find(query, {}, {}, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "No wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
-                    }
-                    resolve(res);
-                }
-            });
-        });
-    } // end of find wallet function
-
-    let totalPlayers = (final) => {
-        console.log("totalPlayers");
-        return new Promise((resolve, reject) => {
-            Player.find().count(function (err, cnt) {
-                if (err) {
-                    logger.error("Failed to retrieve payers", "playerController => totalPlayers()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve payers", 500, null);
-                    reject(apiResponse);
-                } else {
-                    final['totalRecords'] = cnt;
-                    resolve(final);
-                }
-            });
-        });
-    } // end of total Players function
-
-    getSizeLimit()
-        .then(findPlayers)
-        .then(findWallet)
-        .then(totalPlayers)
-        .then((resolve) => {
-            let apiResponse = response.generate(false, "Get Player List Successfully!!", 200, resolve);
-            res.send(apiResponse);
-        })
-        .catch((err) => {
-            console.log(err);
-            res.send(err);
-            res.status(err.status);
-        });
-} // end of get Player List function
-
-// filter player list function
-let filterPlayerList = (req, res) => {
+// transaction
+let transaction = (req, res) => {
 
     let validatingInputs = () => {
         console.log("validatingInputs");
         return new Promise((resolve, reject) => {
-            if (req.body.field && req.body.value) {
+            if (req.body.playerId && req.body.transactionAmount && req.body.itemName) {
                 resolve(req);
             } else {
-                let apiResponse = response.generate(true, "field or value missing", 400, null);
+                let apiResponse = response.generate(true, "playerId or transactionAmount &&  itemName missing", 400, null);
                 reject(apiResponse);
             }
         });
     }; // end of validatingInputs
 
-    let getSizeLimit = () => {
-        console.log("getSizeLimit");
+    let createTransaction = () => {
+        console.log("createTransaction");
         return new Promise((resolve, reject) => {
-            let skip = 0, limit = (req.query.pgSize) ? Number(req.query.pgSize) : 5;
-            if (req.query.pg > 0) {
-                skip = (limit) * (req.query.pg)
-            }
-            let data = {}
-            data['skip'] = skip;
-            data['limit'] = limit;
-            resolve(data)
-        });
-    } // end of getSizeLimit function
-
-    let getTotalWalletCount = (final) => {
-        console.log("getTotalWalletCount");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            query[req.body.field] = req.body.value;
-            Wallet.find(query, {}, {}).count(function (err, cnt) {
+            let body = {};
+            body['transactionId'] = shortid.generate();
+            body['playerId'] = req.body.playerId;
+            body['transactionAmount'] = req.body.transactionAmount;
+            body['itemName'] = req.body.itemName;
+            body['createdOn'] = new Date();
+            Transaction.create(body, function (err, transactionDetails) {
                 if (err) {
-                    logger.error("Failed to retrieve wallet", "playerController => getTotalWalletCount()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve wallet", 500, null);
+                    logger.error("Failed to create Transaction", "playercontroller => createTransaction()", 5);
+                    let apiResponse = response.generate(true, "Failed to create Transaction", 500, null);
                     reject(apiResponse);
                 } else {
-                    final['totalRecords'] = cnt
-                    resolve(final)
-                }
-            })
-        });
-    } // end of getTotalWalletCount function
-
-    let getTotalPlayerCount = (final) => {
-        console.log("getTotalPlayerCount");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            query[req.body.field] = {$regex: new RegExp("^" + req.body.value.toLowerCase(), "i")};
-            Player.find(query, {}, {}).count(function (err, cnt) {
-                if (err) {
-                    logger.error("Failed to retrieve Player", "playerController => getTotalPlayerCount()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Player", 500, null);
-                    reject(apiResponse);
-                } else {
-                    final['totalRecords'] = cnt
-                    resolve(final)
-                }
-            })
-        });
-    } // end of getTotalPlayerCount function
-
-    let getPlayers = (data) => {
-        console.log("getPlayers");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            query[req.body.field] = {$regex: new RegExp("^" + req.body.value.toLowerCase(), "i")};
-            Player.find(query, {}, {
-                skip: data.skip,
-                limit: data.limit,
-                sort: {createdOn: 1}
-            }, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve players", "playerController => getPlayers()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No players found", "playerController => getPlayers()", 5);
-                    let apiResponse = response.generate(true, "No players found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*let final = [];
-                    playersDetails.forEach((item) => {
-                        let finalObject = item.toObject();
-                        delete finalObject._id;
-                        delete finalObject.__v;
-                        final.push(finalObject)
-                    })*/
-                    resolve(playersDetails);
+                    logger.info("Transaction created", "playerController => createTransaction()", 10);
+                    resolve(transactionDetails);
                 }
             });
         });
-    } // end of getPlayers function
-
-    let getWalletWithId = (playersDetails) => {
-        console.log("getWalletWithId");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            let id = [];
-            playersDetails.filter((x) => {
-                id.push(x.playerId);
-            })
-            query = {playerId: {$in: id}}
-            Wallet.find(query, {}, {}, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "No wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
-                    }
-                    resolve(res);
-                }
-            });
-        })
-    } // end of getWalletWithId function
-
-    let getWallet = (data) => {
-        console.log("getWallet");
-        return new Promise((resolve, reject) => {
-            let query = {}
-            query[req.body.field] = req.body.value
-            Wallet.find(query, {}, {
-                skip: data.skip,
-                limit: data.limit,
-                sort: {createdOn: 1}
-            }, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWallet()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No Wallet found", "playerController => getWallet()", 5);
-                    let apiResponse = response.generate(true, "No Wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*  let final = [];
-                      walletDetails.forEach((item) => {
-                          let finalObject = item.toObject();
-                          delete finalObject._id;
-                          delete finalObject.__v;
-                          final.push(finalObject)
-                      })*/
-                    resolve(walletDetails);
-                }
-            });
-        });
-    } // end of getWallet function
-
-    let getPlayerWithId = (walletDetails) => {
-        console.log("getPlayerWithId");
-        return new Promise((resolve, reject) => {
-            let query = {};
-            let id = [];
-            walletDetails.filter((x) => {
-                id.push(x.playerId);
-            })
-            query = {playerId: {$in: id}}
-            Player.find(query, {}, {}, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve player", "playerController => getPlayerWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve player", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No player found", "playerController => getPlayerWithId()", 5);
-                    let apiResponse = response.generate(true, "No player found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
-                    }
-                    resolve(res);
-                }
-            });
-        });
-    } // end of getPlayerWithId function
-
-    let filter = (data) => {
-        console.log("findPlayers");
-        return new Promise((resolve, reject) => {
-            let field = ['playerId', 'mobileNumber', 'profileName', 'deviceId', 'status'];
-            let query = {};
-            if (field.indexOf(req.body.field) !== -1) {
-
-                getPlayers(data)
-                    .then(getWalletWithId)
-                    .then(getTotalPlayerCount)
-                    .then((final) => {
-                        resolve(final);
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        res.send(err);
-                        res.status(err.status);
-                    });
-            } else {
-                getWallet(data)
-                    .then(getPlayerWithId)
-                    .then(getTotalWalletCount)
-                    .then((final) => {
-                        resolve(final);
-                    })
-                    .catch((err) => {
-                        console.log(err);
-                        res.send(err);
-                        res.status(err.status);
-                    });
-            }
-        });
-    } // end of filter Functions
+    }
 
     validatingInputs()
-        .then(getSizeLimit)
-        .then(filter)
+        .then(createTransaction)
         .then((resolve) => {
-            let apiResponse = response.generate(false, "Get Filter Player List Successfully!!", 200, resolve);
+            let apiResponse = response.generate(false, "Transaction Created Successfully!!", 200, resolve);
             res.send(apiResponse);
         })
         .catch((err) => {
@@ -1595,13 +1649,12 @@ let filterPlayerList = (req, res) => {
             res.send(err);
             res.status(err.status);
         });
-} // end of filter Player List function
-
+} // end of transaction in function
 
 module.exports = {
 
-    getPlayerList: getPlayerList,
     createPlayer: createPlayer,
+    getPlayerList: getPlayerList,
     filterPlayerList: filterPlayerList,
     playerSignIn: playerSignIn,
     guestPlayerSignIn: guestPlayerSignIn,
@@ -1611,5 +1664,6 @@ module.exports = {
     getWallet: getWallet,
     getTopTen: getTopTen,
     convertDiamondToChips: convertDiamondToChips,
+    transaction: transaction,
 
 }// end exports

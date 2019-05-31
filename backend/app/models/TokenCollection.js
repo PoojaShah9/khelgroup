@@ -24,7 +24,11 @@ let tokenCollectionSchema = new Schema({
     tokenGenerationTime: {
         type: String,
         default: ''
-    }
+    },
+    createdOn: {
+        type: Date,
+        default: ''
+    },
 }, { versionKey: false  })
 
 

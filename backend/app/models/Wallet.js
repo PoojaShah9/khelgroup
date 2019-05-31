@@ -29,6 +29,10 @@ let WalletCollectionSchema = new Schema({
         default: '',
         index: true
     },
+    createdOn: {
+        type: Date,
+        default: ''
+    }
 }, { versionKey: false  })
 
 

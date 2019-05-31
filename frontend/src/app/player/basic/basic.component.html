@@ -1,105 +1,105 @@
 <div class="main-content">
-  <div class="container-fluid">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card card-plain">
-          <div class="header">
-            <h2 class="title">Player List</h2>
-            <!--<p class="category">Here is a subtitle for this table</p>-->
-            <div class="form-inline col-xs-12 col-md-12 col-sm-12">
-              <div class="col-md-6"></div>
-              <div class="col-md-6">
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card card-plain">
+                    <div class="header">
+                        <h2 class="title">Player List</h2>
+                        <!--<p class="category">Here is a subtitle for this table</p>-->
+                        <div class="form-inline col-xs-12 col-md-12 col-sm-12">
+                            <div class="col-md-6"></div>
+                            <div class="col-md-6">
 
-                <div class="col-md-4">
-                    <select id="filter" class="form-control" (change)="onChangeField($event)">
-                      <option value="select"> -- Select --</option>
-                      <option *ngFor="let field of filterField" [value]="field.id">
-                        {{field.name}}
-                      </option>
-                      <option value="reset"> -- RESET --</option>
+                                <div class="col-md-4">
+                                    <select id="filter" class="form-control" (change)="onChangeField($event)">
+                                        <option value="select"> -- Select --</option>
+                                        <option *ngFor="let field of filterField" [value]="field.id">
+                                            {{field.name}}
+                                        </option>
+                                        <option value="reset"> -- RESET --</option>
 
-                    </select>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="text" name="searchValue" [(ngModel)]="searchValue"
+                                           class="form-control" (keyup)="disableButton()">
+                                </div>
+                                <div class="col-md-4">
+                                    <button class="btn btn-primary pull-right" type="submit" [disabled]="btnDisable"
+                                            (click)="SearchFilter()">Filter
+                                    </button>
+                                </div>
+
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="content table-responsive table-full-width" style="margin-top: 40px">
+                        <div class="row">
+                            <div class="row-page">
+                                <label class="control-label">Rows per page</label>
+                                <select class="form-control" [(ngModel)]="pageSize"
+                                        (ngModelChange)="onPageSizeChanged($event)">
+                                    <option *ngFor="let opt of limitOptions" [value]="opt.value">{{opt.key}}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <ngx-datatable
+                            #myTable
+                            class='dark'
+                            [columnMode]="'force'"
+                            [headerHeight]="40"
+                            [footerHeight]="50"
+                            [rowHeight]="'auto'"
+                            [externalPaging]="true"
+                            [count]="totalSize"
+                            [offset]="currentPage"
+                            [limit]=pageSize
+                            [rows]='rows'
+                            (page)="pageCallback($event)">
+
+                            <ngx-datatable-column name="Player Id">
+                                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Mobile Number">
+                                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Profile Name">
+                                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Chips">
+                                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Diamond">
+                                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Device Id">
+                                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+                            </ngx-datatable-column>
+                            <ngx-datatable-column name="Status">
+                                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
+                                    <strong>{{value}}</strong>
+                                </ng-template>
+
+                            </ngx-datatable-column>
+
+                        </ngx-datatable>
+                    </div>
                 </div>
-                <div class="col-md-4">
-                  <input type="text" name="searchValue" [(ngModel)]="searchValue"
-                         class="form-control" (keyup)="disableButton()">
-                </div>
-                <div class="col-md-4">
-                  <button class="btn btn-primary pull-right" type="submit" [disabled]="btnDisable"
-                          (click)="SearchFilter()">Filter
-                  </button>
-                </div>
-
-              </div>
-
             </div>
-          </div>
-          <div class="content table-responsive table-full-width" style="margin-top: 40px">
-            <div class="row">
-              <div class="row-page">
-                <label class="control-label">Rows per page</label>
-                <select class="form-control" [(ngModel)]="pageSize"
-                        (ngModelChange)="onPageSizeChanged($event)">
-                  <option *ngFor="let opt of limitOptions" [value]="opt.value">{{opt.key}}</option>
-                </select>
-              </div>
-            </div>
-
-            <ngx-datatable
-                    #myTable
-                    class='dark'
-                    [columnMode]="'force'"
-                    [headerHeight]="40"
-                    [footerHeight]="50"
-                    [rowHeight]="'auto'"
-                    [externalPaging]="true"
-                    [count]="totalSize"
-                    [offset]="currentPage"
-                    [limit]=pageSize
-                    [rows]='rows'
-                    (page)="pageCallback($event)">
-
-              <ngx-datatable-column name="Player Id">
-                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Mobile Number">
-                <ng-template let-row="row" let-value="value" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Profile Name">
-                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Chips">
-                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Diamond">
-                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Device Id">
-                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-              </ngx-datatable-column>
-              <ngx-datatable-column name="Status">
-                <ng-template let-value="value" let-row="row" ngx-datatable-cell-template>
-                  <strong>{{value}}</strong>
-                </ng-template>
-
-              </ngx-datatable-column>
-
-            </ngx-datatable>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
 </div>
