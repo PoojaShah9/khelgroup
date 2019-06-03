@@ -69,26 +69,28 @@ let getPlayerList = (req, res) => {
                 skip: data.skip,
                 limit: data.limit,
                 sort: {createdOn: 1}
-            }, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve players", "playerController => findPlayers()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No players found", "playerController => findPlayers()", 5);
-                    let apiResponse = response.generate(true, "No players found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*let final = [];
-                    playersDetails.forEach((item) => {
-                        let finalObject = item.toObject();
-                        delete finalObject._id;
-                        delete finalObject.__v;
-                        final.push(finalObject)
-                    })*/
-                    resolve(playersDetails);
-                }
-            });
+            })
+                .select('-__v -_id')
+                .exec((err, playersDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve players", "playerController => findPlayers()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(playersDetails)) {
+                        logger.error("No players found", "playerController => findPlayers()", 5);
+                        let apiResponse = response.generate(true, "No players found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        /*let final = [];
+                        playersDetails.forEach((item) => {
+                            let finalObject = item.toObject();
+                            delete finalObject._id;
+                            delete finalObject.__v;
+                            final.push(finalObject)
+                        })*/
+                        resolve(playersDetails);
+                    }
+                });
         });
     } // end of findPlayers Functions
 
@@ -101,30 +103,32 @@ let getPlayerList = (req, res) => {
                 id.push(x.playerId);
             })
             query = {playerId: {$in: id}}
-            Wallet.find(query, {}, {}, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "No wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
+            Wallet.find(query, {}, {})
+                .select('-__v -_id')
+                .exec((err, walletDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(walletDetails)) {
+                        logger.error("No wallet found", "playerController => getWalletWithId()", 5);
+                        let apiResponse = response.generate(true, "No wallet found", 500, null);
+                        reject(apiResponse);
+                    } else {
 
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
+                        let final = [];
+                        playersDetails.forEach((x) => {
+                            x = x.toObject();
+                            x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                            x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                            final.push(x);
+                        })
+                        let res = {
+                            results: final
+                        }
+                        resolve(res);
                     }
-                    resolve(res);
-                }
-            });
+                });
         });
     } // end of find wallet function
 
@@ -233,26 +237,28 @@ let filterPlayerList = (req, res) => {
                 skip: data.skip,
                 limit: data.limit,
                 sort: {createdOn: 1}
-            }, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve players", "playerController => getPlayers()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No players found", "playerController => getPlayers()", 5);
-                    let apiResponse = response.generate(true, "No players found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*let final = [];
-                    playersDetails.forEach((item) => {
-                        let finalObject = item.toObject();
-                        delete finalObject._id;
-                        delete finalObject.__v;
-                        final.push(finalObject)
-                    })*/
-                    resolve(playersDetails);
-                }
-            });
+            })
+                .select('-__v -_id')
+                .exec((err, playersDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve players", "playerController => getPlayers()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve players", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(playersDetails)) {
+                        logger.error("No players found", "playerController => getPlayers()", 5);
+                        let apiResponse = response.generate(true, "No players found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        /*let final = [];
+                        playersDetails.forEach((item) => {
+                            let finalObject = item.toObject();
+                            delete finalObject._id;
+                            delete finalObject.__v;
+                            final.push(finalObject)
+                        })*/
+                        resolve(playersDetails);
+                    }
+                });
         });
     } // end of getPlayers function
 
@@ -265,29 +271,31 @@ let filterPlayerList = (req, res) => {
                 id.push(x.playerId);
             })
             query = {playerId: {$in: id}}
-            Wallet.find(query, {}, {}, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No wallet found", "playerController => getWalletWithId()", 5);
-                    let apiResponse = response.generate(true, "No wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
+            Wallet.find(query, {}, {})
+                .select('-__v -_id')
+                .exec((err, walletDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve Wallet", "playerController => getWalletWithId()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(walletDetails)) {
+                        logger.error("No wallet found", "playerController => getWalletWithId()", 5);
+                        let apiResponse = response.generate(true, "No wallet found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        let final = [];
+                        playersDetails.forEach((x) => {
+                            x = x.toObject();
+                            x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                            x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                            final.push(x);
+                        })
+                        let res = {
+                            results: final
+                        }
+                        resolve(res);
                     }
-                    resolve(res);
-                }
-            });
+                });
         })
     } // end of getWalletWithId function
 
@@ -300,26 +308,28 @@ let filterPlayerList = (req, res) => {
                 skip: data.skip,
                 limit: data.limit,
                 sort: {createdOn: 1}
-            }, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve Wallet", "playerController => getWallet()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    logger.error("No Wallet found", "playerController => getWallet()", 5);
-                    let apiResponse = response.generate(true, "No Wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    /*  let final = [];
-                      walletDetails.forEach((item) => {
-                          let finalObject = item.toObject();
-                          delete finalObject._id;
-                          delete finalObject.__v;
-                          final.push(finalObject)
-                      })*/
-                    resolve(walletDetails);
-                }
-            });
+            })
+                .select('-__v -_id')
+                .exec((err, walletDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve Wallet", "playerController => getWallet()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve Wallet", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(walletDetails)) {
+                        logger.error("No Wallet found", "playerController => getWallet()", 5);
+                        let apiResponse = response.generate(true, "No Wallet found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        /*  let final = [];
+                          walletDetails.forEach((item) => {
+                              let finalObject = item.toObject();
+                              delete finalObject._id;
+                              delete finalObject.__v;
+                              final.push(finalObject)
+                          })*/
+                        resolve(walletDetails);
+                    }
+                });
         });
     } // end of getWallet function
 
@@ -332,29 +342,31 @@ let filterPlayerList = (req, res) => {
                 id.push(x.playerId);
             })
             query = {playerId: {$in: id}}
-            Player.find(query, {}, {}, function (err, playersDetails) {
-                if (err) {
-                    logger.error("Failed to retrieve player", "playerController => getPlayerWithId()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve player", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(playersDetails)) {
-                    logger.error("No player found", "playerController => getPlayerWithId()", 5);
-                    let apiResponse = response.generate(true, "No player found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    let final = [];
-                    playersDetails.forEach((x) => {
-                        x = x.toObject();
-                        x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
-                        x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
-                        final.push(x);
-                    })
-                    let res = {
-                        results: final
+            Player.find(query, {}, {})
+                .select('-__v -_id')
+                .exec((err, playersDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve player", "playerController => getPlayerWithId()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve player", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(playersDetails)) {
+                        logger.error("No player found", "playerController => getPlayerWithId()", 5);
+                        let apiResponse = response.generate(true, "No player found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        let final = [];
+                        playersDetails.forEach((x) => {
+                            x = x.toObject();
+                            x['chips'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].chips;
+                            x['diamond'] = walletDetails.filter((y) => y.playerId === x.playerId)[0].diamond;
+                            final.push(x);
+                        })
+                        let res = {
+                            results: final
+                        }
+                        resolve(res);
                     }
-                    resolve(res);
-                }
-            });
+                });
         });
     } // end of getPlayerWithId function
 
@@ -434,6 +446,7 @@ let playerSignIn = (req, res) => {
         console.log("findPlayer");
         return new Promise((resolve, reject) => {
             Player.findOne({'socialId': req.body.socialId, "socialAccount": (req.body.socialAccount).toLowerCase()})
+                .select('-__v -_id')
                 .exec((err, playerDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve player data", "playerController => findPlayer()", 5);
@@ -480,55 +493,57 @@ let playerSignIn = (req, res) => {
     let createWallet = (playerDetails) => {
         console.log("createWallet");
         return new Promise((resolve, reject) => {
-            Wallet.findOne({playerId: playerDetails.playerId}, function (err, walletDetails) {
-                if (err) {
-                    logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
-                    let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(walletDetails)) {
-                    let body = {};
-                    body['walletId'] = shortid.generate();
-                    body['diamond'] = 10;
-                    body['chips'] = 1000;
-                    body['playerId'] = playerDetails.playerId;
-                    body['createdOn'] = new Date();
-                    Wallet.create(body, function (err, walletDetails) {
-                        if (err) {
-                            logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
-                            let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            logger.info("Wallet created for  Player", "playerController => createWallet()", 10);
-                            Player.findOne({playerId: playerDetails.playerId}, function (err, playerDetails) {
+            Wallet.findOne({playerId: playerDetails.playerId})
+                .select('-__v -_id')
+                .exec((err, walletDetails) => {
+                    if (err) {
+                        logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
+                        let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(walletDetails)) {
+                        let body = {};
+                        body['walletId'] = shortid.generate();
+                        body['diamond'] = 10;
+                        body['chips'] = 1000;
+                        body['playerId'] = playerDetails.playerId;
+                        body['createdOn'] = new Date();
+                        Wallet.create(body, function (err, walletDetails) {
+                            if (err) {
+                                logger.error("Failed to create Wallet", "playercontroller => createWallet()", 5);
+                                let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                logger.info("Wallet created for  Player", "playerController => createWallet()", 10);
+                                Player.findOne({playerId: playerDetails.playerId})
+                                    .select('-__v -_id')
+                                    .exec((err, playerDetails) => {
+                                        if (err) {
+                                            logger.error("Failed to find player", "playercontroller => createWallet()", 5);
+                                            let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
+                                            reject(apiResponse);
+                                        } else {
+                                            let finalObject = playerDetails.toObject();
+                                            resolve(finalObject);
+                                        }
+                                    })
+                            }
+                        });
+                    } else {
+                        logger.info("Wallet of Player found", "playerController => createWallet()", 10);
+                        Player.findOne({playerId: playerDetails.playerId})
+                            .select('-__v -_id')
+                            .exec((err, playerDetails) => {
                                 if (err) {
                                     logger.error("Failed to find player", "playercontroller => createWallet()", 5);
                                     let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
                                     reject(apiResponse);
                                 } else {
                                     let finalObject = playerDetails.toObject();
-                                    delete finalObject._id;
-                                    delete finalObject.__v;
                                     resolve(finalObject);
                                 }
                             })
-                        }
-                    });
-                } else {
-                    logger.info("Wallet of Player found", "playerController => createWallet()", 10);
-                    Player.findOne({playerId: playerDetails.playerId}, function (err, playerDetails) {
-                        if (err) {
-                            logger.error("Failed to find player", "playercontroller => createWallet()", 5);
-                            let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let finalObject = playerDetails.toObject();
-                            delete finalObject._id;
-                            delete finalObject.__v;
-                            resolve(finalObject);
-                        }
-                    })
-                }
-            })
+                    }
+                })
         });
     }; // end of createWallet
 
@@ -578,53 +593,54 @@ let playerSignIn = (req, res) => {
     let saveToken = (tokenDetails) => {
         console.log("saveToken");
         return new Promise((resolve, reject) => {
-            tokenCol.findOne({playerId: tokenDetails.playerId}).exec((err, retrieveTokenDetails) => {
-                if (err) {
-                    let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                    reject(apiResponse);
-                }
-                // player is logging for the first time
-                else if (check.isEmpty(retrieveTokenDetails)) {
-                    let newAuthToken = new tokenCol({
-                        playerId: tokenDetails.playerId,
-                        authToken: tokenDetails.token,
-                        // we are storing this is due to we might change this from 15 days
-                        tokenSecret: tokenDetails.tokenSecret,
-                        tokenGenerationTime: time.now()
-                    });
+            tokenCol.findOne({playerId: tokenDetails.playerId})
+                .exec((err, retrieveTokenDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                        reject(apiResponse);
+                    }
+                    // player is logging for the first time
+                    else if (check.isEmpty(retrieveTokenDetails)) {
+                        let newAuthToken = new tokenCol({
+                            playerId: tokenDetails.playerId,
+                            authToken: tokenDetails.token,
+                            // we are storing this is due to we might change this from 15 days
+                            tokenSecret: tokenDetails.tokenSecret,
+                            tokenGenerationTime: time.now()
+                        });
 
-                    newAuthToken.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-                // player has already logged in need to update the token
-                else {
-                    retrieveTokenDetails.authToken = tokenDetails.token;
-                    retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
-                    retrieveTokenDetails.tokenGenerationTime = time.now();
-                    retrieveTokenDetails.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-            });
+                        newAuthToken.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                    // player has already logged in need to update the token
+                    else {
+                        retrieveTokenDetails.authToken = tokenDetails.token;
+                        retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
+                        retrieveTokenDetails.tokenGenerationTime = time.now();
+                        retrieveTokenDetails.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                });
         });
 
     }; // end of saveToken
@@ -684,18 +700,18 @@ let guestPlayerSignIn = (req, res) => {
                     reject(apiResponse);
                 } else {
                     logger.info("Wallet created for Guest Player", "playerController => createWallet()", 10);
-                    Player.findOne({playerId: playerDetails.playerId}, function (err, playerDetails) {
-                        if (err) {
-                            logger.error("Failed to find player", "playercontroller => createWallet()", 5);
-                            let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let finalObject = playerDetails.toObject();
-                            delete finalObject._id;
-                            delete finalObject.__v;
-                            resolve(finalObject);
-                        }
-                    })
+                    Player.findOne({playerId: playerDetails.playerId})
+                        .select('-__v -_id')
+                        .exec((err, playerDetails) => {
+                            if (err) {
+                                logger.error("Failed to find player", "playercontroller => createWallet()", 5);
+                                let apiResponse = response.generate(true, "Failed to create Wallet", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let finalObject = playerDetails.toObject();
+                                resolve(finalObject);
+                            }
+                        })
 
                 }
             });
@@ -722,53 +738,54 @@ let guestPlayerSignIn = (req, res) => {
     let saveToken = (tokenDetails) => {
         console.log("saveToken");
         return new Promise((resolve, reject) => {
-            tokenCol.findOne({playerId: tokenDetails.playerId}).exec((err, retrieveTokenDetails) => {
-                if (err) {
-                    let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                    reject(apiResponse);
-                }
-                // player is logging for the first time
-                else if (check.isEmpty(retrieveTokenDetails)) {
-                    let newAuthToken = new tokenCol({
-                        playerId: tokenDetails.playerId,
-                        authToken: tokenDetails.token,
-                        // we are storing this is due to we might change this from 15 days
-                        tokenSecret: tokenDetails.tokenSecret,
-                        tokenGenerationTime: time.now()
-                    });
+            tokenCol.findOne({playerId: tokenDetails.playerId})
+                .exec((err, retrieveTokenDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                        reject(apiResponse);
+                    }
+                    // player is logging for the first time
+                    else if (check.isEmpty(retrieveTokenDetails)) {
+                        let newAuthToken = new tokenCol({
+                            playerId: tokenDetails.playerId,
+                            authToken: tokenDetails.token,
+                            // we are storing this is due to we might change this from 15 days
+                            tokenSecret: tokenDetails.tokenSecret,
+                            tokenGenerationTime: time.now()
+                        });
 
-                    newAuthToken.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-                // player has already logged in need to update the token
-                else {
-                    retrieveTokenDetails.authToken = tokenDetails.token;
-                    retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
-                    retrieveTokenDetails.tokenGenerationTime = time.now();
-                    retrieveTokenDetails.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-            });
+                        newAuthToken.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                    // player has already logged in need to update the token
+                    else {
+                        retrieveTokenDetails.authToken = tokenDetails.token;
+                        retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
+                        retrieveTokenDetails.tokenGenerationTime = time.now();
+                        retrieveTokenDetails.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                });
         });
 
     }; // end of saveToken
@@ -822,6 +839,7 @@ let updatePlayer = (req, res) => {
         console.log("findPlayer");
         return new Promise((resolve, reject) => {
             Player.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, playerDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve player data", "playerController => findPlayer()", 5);
@@ -859,15 +877,17 @@ let updatePlayer = (req, res) => {
             body['mobileNumber'] = req.body.mobileNumber;
             body['profilePhoto'] = req.body.profilePhoto;
             body['profileName'] = req.body.profileName;
-            Player.findOneAndUpdate({playerId: playerDetails.playerId}, body, {new: true}, function (err, player) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in update player", 400, null);
-                    reject(apiResponse);
-                } else {
-                    resolve(player);
+            Player.findOneAndUpdate({playerId: playerDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, player) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in update player", 400, null);
+                        reject(apiResponse);
+                    } else {
+                        resolve(player);
 
-                }
-            })
+                    }
+                })
 
         });
     } // end of updatePlayer
@@ -895,55 +915,56 @@ let updatePlayer = (req, res) => {
     let saveToken = (tokenDetails) => {
         console.log("saveToken");
         return new Promise((resolve, reject) => {
-            tokenCol.findOne({playerId: tokenDetails.playerId}).exec((err, retrieveTokenDetails) => {
-                if (err) {
-                    let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                    reject(apiResponse);
-                }
-                // player is logging for the first time
-                else if (check.isEmpty(retrieveTokenDetails)) {
-                    let newAuthToken = new tokenCol({
-                        playerId: tokenDetails.playerId,
-                        authToken: tokenDetails.token,
-                        // we are storing this is due to we might change this from 15 days
-                        tokenSecret: tokenDetails.tokenSecret,
-                        tokenGenerationTime: time.now()
-                    });
+            tokenCol.findOne({playerId: tokenDetails.playerId})
+                .exec((err, retrieveTokenDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                        reject(apiResponse);
+                    }
+                    // player is logging for the first time
+                    else if (check.isEmpty(retrieveTokenDetails)) {
+                        let newAuthToken = new tokenCol({
+                            playerId: tokenDetails.playerId,
+                            authToken: tokenDetails.token,
+                            // we are storing this is due to we might change this from 15 days
+                            tokenSecret: tokenDetails.tokenSecret,
+                            tokenGenerationTime: time.now()
+                        });
 
-                    newAuthToken.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-                // player has already logged in need to update the token
-                else {
-                    retrieveTokenDetails.authToken = tokenDetails.token;
-                    retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
-                    retrieveTokenDetails.tokenGenerationTime = time.now();
-                    retrieveTokenDetails.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            delete tokenDetails._id;
-                            delete tokenDetails.__v;
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-            });
+                        newAuthToken.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                    // player has already logged in need to update the token
+                    else {
+                        retrieveTokenDetails.authToken = tokenDetails.token;
+                        retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
+                        retrieveTokenDetails.tokenGenerationTime = time.now();
+                        retrieveTokenDetails.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                delete tokenDetails._id;
+                                delete tokenDetails.__v;
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                });
         });
 
     }; // end of saveToken
@@ -1011,6 +1032,7 @@ let joinGame = (req, res) => {
         console.log("findPlayer");
         return new Promise((resolve, reject) => {
             Player.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, playerDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve player data", "playerController => findPlayer()", 5);
@@ -1033,6 +1055,7 @@ let joinGame = (req, res) => {
         console.log("findWallet");
         return new Promise((resolve, reject) => {
             Wallet.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, walletDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve wallet data", "playerController => findWallet()", 5);
@@ -1067,17 +1090,19 @@ let joinGame = (req, res) => {
         console.log("updatePlayer");
         return new Promise((resolve, reject) => {
             let body = {};
-            body['chips'] = walletDetails.chips - req.body.chips;
-            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true}, function (err, newwalletDetails) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in update wallet", 400, null);
-                    reject(apiResponse);
-                } else {
-                    logger.info("find and update wallet", "PlayerController => updateWallet()", 10);
-                    resolve(newwalletDetails);
+            body['chips'] = Number(walletDetails.chips) - Number(req.body.chips);
+            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, newwalletDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in update wallet", 400, null);
+                        reject(apiResponse);
+                    } else {
+                        logger.info("find and update wallet", "PlayerController => updateWallet()", 10);
+                        resolve(newwalletDetails);
 
-                }
-            })
+                    }
+                })
 
         });
     } // end of updateWallet
@@ -1085,28 +1110,30 @@ let joinGame = (req, res) => {
     let createPlayerHistory = (walletDetails) => {
         console.log("createPlayerHistory");
         return new Promise((resolve, reject) => {
-            PH.findOne({playerId: walletDetails.playerId}, function (err, phDetails) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in find player history", 400, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(phDetails)) {
-                    let body = {};
-                    body['gamesPlayed'] = 0;
-                    body['currencyWon'] = 0;
-                    body['playerId'] = walletDetails.playerId;
-                    body['createdOn'] = new Date();
-                    PH.create(body, function (err, newPHdetails) {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Error in find player history", 400, null);
-                            reject(apiResponse);
-                        } else {
-                            resolve(newPHdetails);
-                        }
-                    })
-                } else {
-                    resolve(phDetails);
-                }
-            })
+            PH.findOne({playerId: walletDetails.playerId})
+                .select('-__v -_id')
+                .exec((err, phDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in find player history", 400, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(phDetails)) {
+                        let body = {};
+                        body['gamesPlayed'] = 0;
+                        body['currencyWon'] = 0;
+                        body['playerId'] = walletDetails.playerId;
+                        body['createdOn'] = new Date();
+                        PH.create(body, function (err, newPHdetails) {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Error in find player history", 400, null);
+                                reject(apiResponse);
+                            } else {
+                                resolve(newPHdetails);
+                            }
+                        })
+                    } else {
+                        resolve(phDetails);
+                    }
+                })
 
         });
     } // end of createPlayerHistory
@@ -1116,101 +1143,30 @@ let joinGame = (req, res) => {
         return new Promise((resolve, reject) => {
             let body = {}
             body['gamesPlayed'] = phDetails.gamesPlayed + 1;
-            PH.findOneAndUpdate({playerId: phDetails.playerId}, body, {new: true}, function (err, newphDetails) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in update player history", 400, null);
-                    reject(apiResponse);
-                } else {
-                    Wallet.findOne({playerId: newphDetails.playerId}, function (err, WalletDetails) {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Error in find player wallet", 400, null);
-                            reject(apiResponse);
-                        } else {
-                            logger.info("wallet found", "PlayerController => updatePlayerHistory()", 10);
-                            let finalObject = WalletDetails.toObject()
-                            delete finalObject._id;
-                            delete finalObject.__v;
-                            resolve(finalObject);
-                        }
-                    })
-                }
-            })
+            PH.findOneAndUpdate({playerId: phDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, newphDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in update player history", 400, null);
+                        reject(apiResponse);
+                    } else {
+                        Wallet.findOne({playerId: newphDetails.playerId})
+                            .select('-__v -_id')
+                            .exec((err, WalletDetails) => {
+                                if (err) {
+                                    let apiResponse = response.generate(true, "Error in find player wallet", 400, null);
+                                    reject(apiResponse);
+                                } else {
+                                    logger.info("wallet found", "PlayerController => updatePlayerHistory()", 10);
+                                    let finalObject = WalletDetails.toObject();
+                                    resolve(finalObject);
+                                }
+                            })
+                    }
+                })
 
         });
     } // end of createPlayerHistory
-
-    let generateToken = (player) => {
-        console.log("generateToken");
-        return new Promise((resolve, reject) => {
-            tokenLib.generateToken(player, (err, tokenDetails) => {
-                if (err) {
-                    logger.error("Failed to generate token", "playerController => generateToken()", 10);
-                    let apiResponse = response.generate(true, "Failed to generate token", 500, null);
-                    reject(apiResponse);
-                } else {
-                    tokenDetails.playerId = player.playerId;
-                    tokenDetails.playerDetails = player;
-                    resolve(tokenDetails);
-                }
-            });
-        });
-    }; // end of generateToken
-
-    let saveToken = (tokenDetails) => {
-        console.log("saveToken");
-        return new Promise((resolve, reject) => {
-            tokenCol.findOne({playerId: tokenDetails.playerId}).exec((err, retrieveTokenDetails) => {
-                if (err) {
-                    let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                    reject(apiResponse);
-                }
-                // player is logging for the first time
-                else if (check.isEmpty(retrieveTokenDetails)) {
-                    let newAuthToken = new tokenCol({
-                        playerId: tokenDetails.playerId,
-                        authToken: tokenDetails.token,
-                        // we are storing this is due to we might change this from 15 days
-                        tokenSecret: tokenDetails.tokenSecret,
-                        tokenGenerationTime: time.now()
-                    });
-
-                    newAuthToken.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-                // player has already logged in need to update the token
-                else {
-                    retrieveTokenDetails.authToken = tokenDetails.token;
-                    retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
-                    retrieveTokenDetails.tokenGenerationTime = time.now();
-                    retrieveTokenDetails.save((err, newTokenDetails) => {
-                        if (err) {
-                            let apiResponse = response.generate(true, "Failed to save token", 500, null);
-                            reject(apiResponse);
-                        } else {
-                            delete tokenDetails._id;
-                            delete tokenDetails.__v;
-                            let responseBody = {
-                                authToken: newTokenDetails.authToken,
-                                playerDetails: tokenDetails.playerDetails
-                            };
-                            resolve(responseBody);
-                        }
-                    });
-                }
-            });
-        });
-
-    }; // end of saveToken
 
     validatingInputs()
         .then(verifyToken)
@@ -1278,6 +1234,7 @@ let wonGame = (req, res) => {
         console.log("findPlayer");
         return new Promise((resolve, reject) => {
             Player.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, playerDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve player data", "playerController => findPlayer()", 5);
@@ -1300,6 +1257,7 @@ let wonGame = (req, res) => {
         console.log("findPH");
         return new Promise((resolve, reject) => {
             PH.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, phDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve player history data", "playerController => findPH()", 5);
@@ -1322,16 +1280,18 @@ let wonGame = (req, res) => {
         console.log("updatePH");
         return new Promise((resolve, reject) => {
             let body = {};
-            body['chipsWon'] = phDetails.chipsWon + req.body.chips;
-            PH.findOneAndUpdate({playerId: phDetails.playerId}, body, {new: true}, function (err, newPHDetails) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in update player history", 400, null);
-                    reject(apiResponse);
-                } else {
-                    logger.info("find and update playerhistory", "PlayerController => updatePH()", 10);
-                    resolve(newPHDetails);
-                }
-            })
+            body['chipsWon'] = Number(phDetails.chipsWon) + Number(req.body.chips);
+            PH.findOneAndUpdate({playerId: phDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, newPHDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in update player history", 400, null);
+                        reject(apiResponse);
+                    } else {
+                        logger.info("find and update playerhistory", "PlayerController => updatePH()", 10);
+                        resolve(newPHDetails);
+                    }
+                })
 
         });
     } // end of updatePH
@@ -1340,6 +1300,7 @@ let wonGame = (req, res) => {
         console.log("findWallet");
         return new Promise((resolve, reject) => {
             Wallet.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, walletDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve wallet data", "playerController => findWallet()", 5);
@@ -1362,20 +1323,20 @@ let wonGame = (req, res) => {
         console.log("updateWallet");
         return new Promise((resolve, reject) => {
             let body = {};
-            body['chips'] = walletDetails.chips + req.body.chips;
-            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true}, function (err, newwalletDetails) {
-                if (err) {
-                    let apiResponse = response.generate(true, "Error in update wallet", 400, null);
-                    reject(apiResponse);
-                } else {
-                    logger.info("find and update wallet", "PlayerController => updateWallet()", 10);
-                    let finalObject = newwalletDetails.toObject()
-                    delete finalObject._id;
-                    delete finalObject.__v;
-                    resolve(finalObject);
+            body['chips'] = Number(walletDetails.chips) + Number(req.body.chips);
+            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, newwalletDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Error in update wallet", 400, null);
+                        reject(apiResponse);
+                    } else {
+                        logger.info("find and update wallet", "PlayerController => updateWallet()", 10);
+                        let finalObject = newwalletDetails.toObject();
+                        resolve(finalObject);
 
-                }
-            })
+                    }
+                })
 
         });
     } // end of updateWallet
@@ -1418,6 +1379,7 @@ let getWallet = (req, res) => {
         console.log("findWallet");
         return new Promise((resolve, reject) => {
             Wallet.findOne({'playerId': req.query.playerId})
+                .select('-__v -_id')
                 .exec((err, walletDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve wallet data", "playerController => findWallet()", 5);
@@ -1429,9 +1391,7 @@ let getWallet = (req, res) => {
                         reject(apiResponse);
                     } else {
                         logger.info("wallet found", "PlayerController => findWallet()", 10);
-                        let finalObject = walletDetails.toObject()
-                        delete finalObject._id;
-                        delete finalObject.__v;
+                        let finalObject = walletDetails.toObject();
                         resolve(finalObject);
                     }
                 });
@@ -1471,6 +1431,7 @@ let getTopTen = (req, res) => {
         console.log("findTopTen");
         return new Promise((resolve, reject) => {
             PH.find({}).sort({chipsWon: -1}).limit(10)
+                .select('-__v -_id')
                 .exec((err, topTenPlayer) => {
                     if (err) {
                         logger.error("Failed to retrieve top ten player", "playerController => findTopTen()", 5);
@@ -1524,6 +1485,7 @@ let convertDiamondToChips = (req, res) => {
         console.log("findWallet");
         return new Promise((resolve, reject) => {
             Wallet.findOne({'playerId': req.body.playerId})
+                .select('-__v -_id')
                 .exec((err, walletDetails) => {
                     if (err) {
                         logger.error("Failed to retrieve wallet data", "playerController => findWallet()", 5);
@@ -1535,9 +1497,7 @@ let convertDiamondToChips = (req, res) => {
                         reject(apiResponse);
                     } else {
                         logger.info("wallet found", "PlayerController => findWallet()", 10);
-                        let finalObject = walletDetails.toObject()
-                        delete finalObject._id;
-                        delete finalObject.__v;
+                        let finalObject = walletDetails.toObject();
                         resolve(finalObject);
                     }
                 });
@@ -1563,9 +1523,11 @@ let convertDiamondToChips = (req, res) => {
         console.log("convertAndSave");
         return new Promise((resolve, reject) => {
             let body = {};
-            body['chips'] = walletDetails.chips + ((req.body.diamond) * 1000);
-            body['diamond'] = walletDetails.diamond - req.body.diamond;
-            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true}, function (err, newWalletDetails) {
+            body['chips'] = Number(walletDetails.chips) + (Number(req.body.diamond) * 1000);
+            body['diamond'] = Number(walletDetails.diamond) - Number(req.body.diamond);
+            Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true})
+                .select('-__v -_id')
+                .exec((err, newWalletDetails)=> {
                 if (err) {
                     logger.error("Failed to retrieve wallet data", "playerController => convertAndSave()", 5);
                     let apiResponse = response.generate(true, "Failed to retrieve wallet data", 500, null);
@@ -1576,9 +1538,7 @@ let convertDiamondToChips = (req, res) => {
                     reject(apiResponse);
                 } else {
                     logger.info("wallet found", "PlayerController => convertAndSave()", 10);
-                    let finalObject = newWalletDetails.toObject()
-                    delete finalObject._id;
-                    delete finalObject.__v;
+                    let finalObject = newWalletDetails.toObject();
                     resolve(finalObject);
                 }
             });
