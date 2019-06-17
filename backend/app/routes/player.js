@@ -16,6 +16,12 @@ module.exports.setRouter = (app) => {
     // create player
     app.post(`${baseUrl}/craeteplayer`, playerController.createPlayer);
 
+    // login player
+    app.post(`${baseUrl}/loginplayer`, playerController.loginPlayer);
+
+    // logout player
+    app.post(`${baseUrl}/logoutplayer`, playerController.logoutplayer);
+
     // filter player list
     app.post(`${baseUrl}/filterplayerlist`, playerController.filterPlayerList);
 

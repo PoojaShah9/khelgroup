@@ -6,6 +6,7 @@ const logger = require('./../libs/loggerLib');
 const validateInput = require('../libs/paramsValidationLib')
 const check = require('../libs/checkLib')
 const tokenLib = require('../libs/tokenLib')
+const {isNullOrUndefined} = require('util');
 
 var faker = require('faker');
 
@@ -18,32 +19,279 @@ const Transaction = mongoose.model('transaction');
 
 // create Player function
 let createPlayer = (req, res) => {
-    try {
-        var myArray = ['Gold', 'Bronze', 'Silver', 'Platinum', 'Copper'];
-        var rand = myArray[Math.floor(Math.random() * myArray.length)];
-        let body = {
-            mobileNumber: faker.phone.phoneNumberFormat(),
-            profileName: faker.name.firstName(),
-            deviceId: faker.random.number(),
-            status: rand,
-            otp: faker.random.number(),
-            coverPhoto: faker.image.avatar(),
-            profilePhoto: faker.image.avatar(),
-            bio: faker.lorem.sentence(),
-        };
-        body['playerId'] = shortid.generate();
-        body['createdOn'] = new Date();
-        Player.create(body, function (err, response) {
-            if (err) {
-                res.status(500).send(err);
+
+    let validatingInputs = () => {
+        console.log("validatingInputs");
+        return new Promise((resolve, reject) => {
+            if (req.body.password) {
+                resolve(req);
             } else {
-                res.status(200).send(response);
+                let apiResponse = response.generate(true, "password missing", 400, null);
+                reject(apiResponse);
             }
+        });
+    }; // end of validatingInputs
+
+    let createPlayers = () => {
+        console.log("createPlayers");
+        return new Promise((resolve, reject) => {
+            var myArray = ['Gold', 'Bronze', 'Silver', 'Platinum', 'Copper'];
+            var rand = myArray[Math.floor(Math.random() * myArray.length)];
+            let body = {
+                mobileNumber: faker.phone.phoneNumberFormat(),
+                profileName: faker.name.firstName(),
+                deviceId: faker.random.number(),
+                status: rand,
+                emailId: faker.internet.email(),
+                profilePhoto: faker.image.avatar(),
+                bio: faker.lorem.sentence(),
+            };
+            body['playerId'] = shortid.generate();
+            body['password'] = req.body.password;
+            body['createdOn'] = new Date();
+            Player.create(body, function (err, response) {
+                if (err) {
+                    logger.error("Failed to create players", "playerController => findPlayers()", 5);
+                    let apiResponse = response.generate(true, err, 500, null);
+                    reject(apiResponse);
+                } else {
+                    let finalObject = response.toObject();
+                    delete finalObject._id;
+                    delete finalObject.__v;
+                    resolve(finalObject);
+                }
+            });
+        });
+    } // end of createPlayers function
+
+    validatingInputs()
+        .then(createPlayers)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, "Player Created Successfully!!", 200, resolve);
+            res.send(apiResponse);
         })
-    } catch (e) {
-        res.status(500).send(e);
-    }
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+            res.status(err.status);
+        });
 } // end of create Player function
+
+// login Player function
+let loginPlayer = (req, res) => {
+
+    let validatingInputs = () => {
+        console.log("validatingInputs");
+        return new Promise((resolve, reject) => {
+            if (req.body.username && req.body.password) {
+                resolve(req);
+            } else {
+                let apiResponse = response.generate(true, "password or username missing", 400, null);
+                reject(apiResponse);
+            }
+        });
+    }; // end of validatingInputs
+
+    let findPlayers = () => {
+        console.log("findPlayers");
+        return new Promise((resolve, reject) => {
+            Player.find({profileName: req.body.username}, function (err, playerDetails) {
+                if (err) {
+                    logger.error("Failed to find players", "playerController => findPlayers()", 5);
+                    let apiResponse = response.generate(true, "Failed to find players", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(playerDetails)) {
+                    logger.error("Player not found", "playerController => findPlayers()", 5);
+                    let apiResponse = response.generate(true, "Player not found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    resolve(playerDetails[0]);
+                }
+            });
+        });
+    } // end of findPlayers function
+
+    let pwdMatch = (playerDetails) => {
+        console.log("pwdMatch");
+        return new Promise((resolve, reject) => {
+            playerDetails.comparePassword(req.body.password, function (err, match) {
+                if (err) {
+                    logger.error("Wrong Password", "playerController => pwdMatch()", 5);
+                    let apiResponse = response.generate(true, "Wrong Password", 500, null);
+                    reject(apiResponse);
+                } else {
+                    if (match === true) {
+                        resolve(playerDetails);
+                    } else {
+                        logger.error("Wrong Password", "playerController => pwdMatch()", 5);
+                        let apiResponse = response.generate(true, "Wrong Password", 500, null);
+                        reject(apiResponse);
+                    }
+                }
+            });
+        });
+    } // end of pwdMatch function
+
+    let generateToken = (player) => {
+        console.log("generateToken");
+        return new Promise((resolve, reject) => {
+            tokenLib.generateToken(player, (err, tokenDetails) => {
+                if (err) {
+                    logger.error("Failed to generate token", "playerController => generateToken()", 10);
+                    let apiResponse = response.generate(true, "Failed to generate token", 500, null);
+                    reject(apiResponse);
+                } else {
+                    let finalObject = player.toObject()
+                    delete finalObject._id;
+                    delete finalObject.__v;
+                    tokenDetails.playerId = player.playerId;
+                    tokenDetails.playerDetails = finalObject;
+                    resolve(tokenDetails);
+                }
+            });
+        });
+    }; // end of generateToken
+
+    let saveToken = (tokenDetails) => {
+        console.log("saveToken");
+        return new Promise((resolve, reject) => {
+            tokenCol.findOne({playerId: tokenDetails.playerId})
+                .exec((err, retrieveTokenDetails) => {
+                    if (err) {
+                        let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                        reject(apiResponse);
+                    }
+                    // player is logging for the first time
+                    else if (check.isEmpty(retrieveTokenDetails)) {
+                        let newAuthToken = new tokenCol({
+                            playerId: tokenDetails.playerId,
+                            authToken: tokenDetails.token,
+                            // we are storing this is due to we might change this from 15 days
+                            tokenSecret: tokenDetails.tokenSecret,
+                            tokenGenerationTime: time.now()
+                        });
+
+                        newAuthToken.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                    // player has already logged in need to update the token
+                    else {
+                        retrieveTokenDetails.authToken = tokenDetails.token;
+                        retrieveTokenDetails.tokenSecret = tokenDetails.tokenSecret;
+                        retrieveTokenDetails.tokenGenerationTime = time.now();
+                        retrieveTokenDetails.save((err, newTokenDetails) => {
+                            if (err) {
+                                let apiResponse = response.generate(true, "Failed to save token", 500, null);
+                                reject(apiResponse);
+                            } else {
+                                delete tokenDetails._id;
+                                delete tokenDetails.__v;
+                                let responseBody = {
+                                    authToken: newTokenDetails.authToken,
+                                    playerDetails: tokenDetails.playerDetails
+                                };
+                                resolve(responseBody);
+                            }
+                        });
+                    }
+                });
+        });
+
+    }; // end of saveToken
+
+    validatingInputs()
+        .then(findPlayers)
+        .then(pwdMatch)
+        .then(generateToken)
+        .then(saveToken)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, "Login Successfully!!", 200, resolve);
+            res.send(apiResponse);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+            res.status(err.status);
+        });
+} // end of login Player function
+
+// logout player function
+let logoutplayer = (req, res) => {
+
+    let validatingInputs = () => {
+        console.log("validatingInputs");
+        return new Promise((resolve, reject) => {
+            if (req.body.playerId) {
+                resolve(req);
+            } else {
+                let apiResponse = response.generate(true, "playerId missing", 400, null);
+                reject(apiResponse);
+            }
+        });
+    }; // end of validatingInputs
+
+    let findToken = () => {
+        console.log("findToken");
+        return new Promise((resolve, reject) => {
+            tokenCol.findOne({playerId: req.body.playerId}, function (err, tokenDetails) {
+                if (err) {
+                    logger.error("Failed to find token", "playerController => findToken()", 5);
+                    let apiResponse = response.generate(true, "Failed to find token", 500, null);
+                    reject(apiResponse);
+                } else if (check.isEmpty(tokenDetails)) {
+                    logger.error("token not found", "playerController => findToken()", 5);
+                    let apiResponse = response.generate(true, "token not found", 500, null);
+                    reject(apiResponse);
+                } else {
+                    resolve(tokenDetails);
+                }
+            });
+        });
+    } // end of findPlayers function
+
+    let findRemove = (tokenDetails) => {
+        console.log("findRemove");
+        return new Promise((resolve, reject) => {
+            tokenCol.findOneAndRemove({playerId: tokenDetails.playerId})
+                .exec((err, nwetokenDetail) => {
+                    if (err) {
+                        logger.error("Error while remove token", "playerController => findRemove()", 5);
+                        let apiResponse = response.generate(true, "Error while remove token", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(nwetokenDetail)) {
+                        logger.error("No Token Remove", "playerController => findRemove()", 5);
+                        let apiResponse = response.generate(true, "No Token Remove", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        resolve(nwetokenDetail);
+                    }
+                });
+        });
+    } // end of pwdMatch function
+
+    validatingInputs()
+        .then(findToken)
+        .then(findRemove)
+        .then((resolve) => {
+            let apiResponse = response.generate(false, "Logout Successfully!!", 200, resolve);
+            res.send(apiResponse);
+        })
+        .catch((err) => {
+            console.log(err);
+            res.send(err);
+            res.status(err.status);
+        });
+} // end of logout player function
 
 // get Player List function
 let getPlayerList = (req, res) => {
@@ -1527,21 +1775,21 @@ let convertDiamondToChips = (req, res) => {
             body['diamond'] = Number(walletDetails.diamond) - Number(req.body.diamond);
             Wallet.findOneAndUpdate({playerId: walletDetails.playerId}, body, {new: true})
                 .select('-__v -_id')
-                .exec((err, newWalletDetails)=> {
-                if (err) {
-                    logger.error("Failed to retrieve wallet data", "playerController => convertAndSave()", 5);
-                    let apiResponse = response.generate(true, "Failed to retrieve wallet data", 500, null);
-                    reject(apiResponse);
-                } else if (check.isEmpty(newWalletDetails)) {
-                    logger.error("No Wallet found", "playerController => convertAndSave()", 5);
-                    let apiResponse = response.generate(true, "No Wallet found", 500, null);
-                    reject(apiResponse);
-                } else {
-                    logger.info("wallet found", "PlayerController => convertAndSave()", 10);
-                    let finalObject = newWalletDetails.toObject();
-                    resolve(finalObject);
-                }
-            });
+                .exec((err, newWalletDetails) => {
+                    if (err) {
+                        logger.error("Failed to retrieve wallet data", "playerController => convertAndSave()", 5);
+                        let apiResponse = response.generate(true, "Failed to retrieve wallet data", 500, null);
+                        reject(apiResponse);
+                    } else if (check.isEmpty(newWalletDetails)) {
+                        logger.error("No Wallet found", "playerController => convertAndSave()", 5);
+                        let apiResponse = response.generate(true, "No Wallet found", 500, null);
+                        reject(apiResponse);
+                    } else {
+                        logger.info("wallet found", "PlayerController => convertAndSave()", 10);
+                        let finalObject = newWalletDetails.toObject();
+                        resolve(finalObject);
+                    }
+                });
         });
 
     }; // end of findWallet
@@ -1614,6 +1862,8 @@ let transaction = (req, res) => {
 module.exports = {
 
     createPlayer: createPlayer,
+    loginPlayer: loginPlayer,
+    logoutplayer: logoutplayer,
     getPlayerList: getPlayerList,
     filterPlayerList: filterPlayerList,
     playerSignIn: playerSignIn,

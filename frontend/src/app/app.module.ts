@@ -17,6 +17,7 @@ import {PlayerService} from './services/player.service';
 import { AdminLayoutComponent } from './layouts/admin-layout/admin-layout.component';
 import {HttpClientModule} from '@angular/common/http';
 import {ToastrModule} from 'ngx-toastr';
+import {UserService} from './services/user.service';
 
 @NgModule({
   imports: [
@@ -35,7 +36,7 @@ import {ToastrModule} from 'ngx-toastr';
     AppComponent,
     AdminLayoutComponent
   ],
-  providers: [PlayerService],
+  providers: [PlayerService, UserService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
